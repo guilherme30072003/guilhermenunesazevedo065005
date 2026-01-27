@@ -1,10 +1,8 @@
-import Text from "./components/text";
+import Button from "./components/button";
 
 export default function App() {
   return (
-    <Text variant="blast">
-      Nome Pet
-    </Text>
+    <Button className="flex-1 h-16" variant="primary">Detalhes</Button>
   )
 }
 
