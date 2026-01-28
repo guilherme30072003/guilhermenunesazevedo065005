@@ -1,4 +1,5 @@
 import GridCard from "./components/grid-card"
+import SearchBar from "./components/search-bar"
 
 export default function App() {
   return (
@@ -8,6 +9,7 @@ export default function App() {
           items-center sm:items-stretch
           gap-2,
           `}>
+      <SearchBar />
       <GridCard />
       <GridCard />
       <GridCard />
