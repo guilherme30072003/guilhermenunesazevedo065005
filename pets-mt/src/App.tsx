@@ -1,5 +1,7 @@
 import GridCard from "./components/grid-card"
 import SearchBar from "./components/search-bar"
+import Home from "./routes/home"
+
 
 export default function App() {
   return (
@@ -18,10 +20,7 @@ export default function App() {
       <GridCard />
       <GridCard />
       <GridCard />
+      <Home />
     </main>
   )
 }
-
-
-
-
