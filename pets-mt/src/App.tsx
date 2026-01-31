@@ -1,4 +1,3 @@
-import GridCard from "./components/grid-card"
 import SearchBar from "./components/search-bar"
 import Home from "./routes/home"
 
@@ -12,14 +11,6 @@ export default function App() {
           gap-2,
           `}>
       <SearchBar />
-      <GridCard />
-      <GridCard />
-      <GridCard />
-      <GridCard />
-      <GridCard />
-      <GridCard />
-      <GridCard />
-      <GridCard />
       <Home />
     </main>
   )

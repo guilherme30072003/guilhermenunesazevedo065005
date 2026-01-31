@@ -3,9 +3,21 @@ import { useEffect, useRef } from "react";
 
 interface GetLoginProps {
     Token: string | null;
+    onGetPets: React.Dispatch<React.SetStateAction<{
+        id: number;
+        nome: string;
+        raca: string;
+        idade: number;
+        foto: {
+            id: number;
+            nome: string;
+            contentType: string;
+            url: string;
+        };
+    }[]>>;
 }
 
-export default function GetPets({ Token }: GetLoginProps) {
+export default function GetPets({ Token, onGetPets }: GetLoginProps) {
 
     const executou = useRef(false);
 
@@ -21,6 +33,49 @@ export default function GetPets({ Token }: GetLoginProps) {
         try {
             const response = await authAxios.get("/v1/pets");
             console.log(response);
+
+            const data = response.data.content;
+
+            let index = 0;
+
+
+            data.forEach((pet: {
+                //page: number,
+                //size: number,
+                //total: number,
+                //pageCount: number,
+                //content?: [
+                //{
+                id: number,
+                nome: string,
+                raca: string,
+                idade: number,
+                foto: {
+                    id: number,
+                    nome: string,
+                    contentType: string,
+                    url: string
+                }
+                //}
+                //]
+            }) => {
+                console.log(pet);
+                console.log(typeof (pet));
+                //onGetPets(prev => [...prev, pet.content[index]]);
+                //const novoPet = pet.content?.[index];
+                const novoPet = pet
+                if (!novoPet) return;
+
+                onGetPets(prev => [...(prev ?? []), novoPet]);
+
+                //onGetPets(prev => [
+                //...(prev ?? []),
+                //pet.content[index]
+                //]);
+                index++;
+            });
+
+
         } catch (error) {
             console.log(error);
         }

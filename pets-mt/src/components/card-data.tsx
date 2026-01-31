@@ -4,8 +4,8 @@ import Text from "./text";
 interface CardDataProps {
     className?: string;
     children?: React.ReactNode;
-    nome: string;
-    raca: string;
+    nome?: string;
+    raca?: string;
 }
 
 export default function CardData({ nome, raca }: CardDataProps) {
