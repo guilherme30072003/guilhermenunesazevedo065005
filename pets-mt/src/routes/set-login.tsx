@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface SetLoginProps {
     onTokenGerado: React.Dispatch<React.SetStateAction<string | null>>;
@@ -7,6 +7,8 @@ interface SetLoginProps {
 
 
 export default function SetLogin({ onTokenGerado }: SetLoginProps) {
+
+    const executou = useRef(false);
 
     const getLogin = async () => {
         try {
@@ -38,7 +40,8 @@ export default function SetLogin({ onTokenGerado }: SetLoginProps) {
     }
 
     useEffect(() => {
-
+        if (executou.current) return;
+        executou.current = true;
         getLogin();
 
     }, [])
