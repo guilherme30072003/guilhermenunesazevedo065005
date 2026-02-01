@@ -40,12 +40,6 @@ export default function GetPets({ Token, onGetPets }: GetLoginProps) {
 
 
             data.forEach((pet: {
-                //page: number,
-                //size: number,
-                //total: number,
-                //pageCount: number,
-                //content?: [
-                //{
                 id: number,
                 nome: string,
                 raca: string,
@@ -56,22 +50,14 @@ export default function GetPets({ Token, onGetPets }: GetLoginProps) {
                     contentType: string,
                     url: string
                 }
-                //}
-                //]
             }) => {
                 console.log(pet);
                 console.log(typeof (pet));
-                //onGetPets(prev => [...prev, pet.content[index]]);
-                //const novoPet = pet.content?.[index];
                 const novoPet = pet
                 if (!novoPet) return;
 
                 onGetPets(prev => [...(prev ?? []), novoPet]);
 
-                //onGetPets(prev => [
-                //...(prev ?? []),
-                //pet.content[index]
-                //]);
                 index++;
             });
 
