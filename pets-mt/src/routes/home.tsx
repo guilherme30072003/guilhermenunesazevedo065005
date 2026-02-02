@@ -22,21 +22,29 @@ export default function Home() {
         };
     }[]>([]);
     const [PagesQuantidade, setPagesQuantidade] = useState<number | null>(null);
+    const [CurrentPage, setCurrentPage] = useState<number>(0);
 
 
     return (
         <>
             <SetLogin onTokenGerado={setToken} />
-            {Token && <GetPets Token={Token} onGetPets={setPets} onGetPagesQuantidade={setPagesQuantidade} />}
+            {Token && <GetPets Token={Token} onGetPets={setPets} onGetPagesQuantidade={setPagesQuantidade} currentPage={CurrentPage} />}
 
-            <div className="flex items-center justify-center p-2">
+            <div className="flex items-center justify-center p-2 gap-2">
 
                 {Array.from({
                     length: PagesQuantidade == null ? 0 : PagesQuantidade
                 })?.map((_, index) => (
-                    <div className="gap-1.5" key={index}>
-                        <Button variant="default" style_variant='pagination' className="text-blue-300 text flex items-center justify-center">{index + 1}</Button>
-                    </div>
+                    <button
+                        key={index}
+                        onClick={() => setCurrentPage(index)}
+                        className={`flex items-center justify-center rounded-xl p-3 cursor-pointer ${CurrentPage === index
+                                ? 'bg-linear-(--gradient) text-white font-bold'
+                                : 'bg-gray-400 hover:bg-gray-500'
+                            }`}
+                    >
+                        {index + 1}
+                    </button>
                 ))}
 
             </div>

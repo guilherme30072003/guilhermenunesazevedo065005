@@ -15,11 +15,11 @@ interface GetLoginProps {
             url: string;
         };
     }[]>>;
-    onGetPagesQuantidade: React.Dispatch<React.SetStateAction<number | null>>
-
+    onGetPagesQuantidade: React.Dispatch<React.SetStateAction<number | null>>;
+    currentPage: number;
 }
 
-export default function GetPets({ Token, onGetPets, onGetPagesQuantidade }: GetLoginProps) {
+export default function GetPets({ Token, onGetPets, onGetPagesQuantidade, currentPage }: GetLoginProps) {
 
     const executou = useRef(false);
 
@@ -31,14 +31,17 @@ export default function GetPets({ Token, onGetPets, onGetPagesQuantidade }: GetL
     })
 
 
-    const getPets = async () => {
+    const getPets = async (page: number) => {
         try {
-            const response = await authAxios.get("/v1/pets");
+            const response = await authAxios.get("/v1/pets", {
+                params: {
+                    page: page
+                }
+            });
             console.log(response);
 
             const data = response.data.content;
-
-
+            onGetPets([]); // Limpa os pets anteriores
 
             data.forEach((pet: {
                 id: number,
@@ -69,16 +72,16 @@ export default function GetPets({ Token, onGetPets, onGetPagesQuantidade }: GetL
 
 
     useEffect(() => {
-        if (executou.current) return;
-        executou.current = true;
+        if (!Token) return;
 
-        getPets();
+        getPets(currentPage);
 
         console.log("Executou!");
         console.log("Usando Token...");
         console.log(Token);
+        console.log("Página atual:", currentPage);
 
-    }, [])
+    }, [Token, currentPage])
 
 
 
