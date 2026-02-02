@@ -15,9 +15,11 @@ interface GetLoginProps {
             url: string;
         };
     }[]>>;
+    onGetPagesQuantidade: React.Dispatch<React.SetStateAction<number | null>>
+
 }
 
-export default function GetPets({ Token, onGetPets }: GetLoginProps) {
+export default function GetPets({ Token, onGetPets, onGetPagesQuantidade }: GetLoginProps) {
 
     const executou = useRef(false);
 
@@ -36,7 +38,6 @@ export default function GetPets({ Token, onGetPets }: GetLoginProps) {
 
             const data = response.data.content;
 
-            let index = 0;
 
 
             data.forEach((pet: {
@@ -57,8 +58,7 @@ export default function GetPets({ Token, onGetPets }: GetLoginProps) {
                 if (!novoPet) return;
 
                 onGetPets(prev => [...(prev ?? []), novoPet]);
-
-                index++;
+                onGetPagesQuantidade(response.data.pageCount)
             });
 
 

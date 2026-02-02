@@ -7,6 +7,7 @@ export default function SearchBar() {
             <Text
                 as="h1"
                 variant="muted"
+                className="select-none"
             >
                 Pesquise um pet
             </Text>
