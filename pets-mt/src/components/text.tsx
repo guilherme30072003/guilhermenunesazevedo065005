@@ -4,6 +4,7 @@ import React from "react"
 const textVariants = {
     default: 'text-xl',
     muted: 'text-xl text-(--text-secondary)',
+    minus_muted: 'text text-(--text-secondary)',
     heading: 'text-2xl',
     blast: 'text-3xl',
 } as const
@@ -20,6 +21,7 @@ interface TextProps {
     textVariants?: {
         default: 'text-xl',
         muted: 'text-xl text-(--text-secondary)',
+        minus_muted: 'text text-(--text-secondary)',
         heading: 'text-2xl',
         blast: 'text-3xl',
     };

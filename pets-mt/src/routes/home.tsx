@@ -26,10 +26,10 @@ export default function Home() {
             <SetLogin onTokenGerado={setToken} />
             {Token && <GetPets Token={Token} onGetPets={setPets} />}
 
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(330px,1fr))] gap-4 p-3">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(350px,1fr))] gap-4 p-3">
                 {Pets?.map(pet => (
                     <div key={pet.id}>
-                        <Card nome={pet.nome} raca={pet.raca} />
+                        <Card id={pet.id} nome={pet.nome} raca={pet.raca} idade={pet.idade} foto={pet.foto} />
                     </div>
                 ))}
             </div>
