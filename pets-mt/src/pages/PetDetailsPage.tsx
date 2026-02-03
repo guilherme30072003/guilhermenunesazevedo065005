@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePetDetails } from "../hooks/usePetDetails";
+import { tutorService } from "../services/api";
 import SetLogin from "../loaders/set-login";
 import CardBackground from "../components/card-background";
 import Text from "../components/text";
@@ -11,6 +12,10 @@ export default function PetDetailsPage() {
     const [Token, setToken] = useState<string | null>(null);
     const petId = id ? parseInt(id) : null;
     const { pet, loading, error } = usePetDetails(Token, petId);
+    const [showLinkModal, setShowLinkModal] = useState(false);
+    const [tutorIdToLink, setTutorIdToLink] = useState<string>("");
+    const [linkingTutor, setLinkingTutor] = useState(false);
+    const [linkError, setLinkError] = useState<string | null>(null);
 
     if (!Token) {
         return (
@@ -40,6 +45,23 @@ export default function PetDetailsPage() {
             </div>
         );
     }
+
+    const handleLinkTutor = async () => {
+        if (!tutorIdToLink || !Token || !petId) return;
+        setLinkingTutor(true);
+        setLinkError(null);
+        try {
+            await tutorService.linkPetToTutor(Token, parseInt(tutorIdToLink), petId);
+            setShowLinkModal(false);
+            setTutorIdToLink("");
+            // Recarregar a página para atualizar os dados
+            window.location.reload();
+        } catch (err) {
+            setLinkError(err instanceof Error ? err.message : "Erro ao vincular tutor");
+        } finally {
+            setLinkingTutor(false);
+        }
+    };
 
     return (
         <div className="flex flex-col gap-8 p-6 max-w-2xl mx-auto">
@@ -94,15 +116,23 @@ export default function PetDetailsPage() {
                 </div>
 
                 {/* Dados dos tutores */}
-                {pet.tutores && pet.tutores.length > 0 && (
-                    <div className="mt-6 pt-6 border-t border-gray-600">
+                <div className="mt-6 pt-6 border-t border-gray-600">
+                    <div className="flex justify-between items-center mb-4">
                         <Text
                             as="h2"
                             variant="heading"
-                            className="text-2xl mb-4 text-blue-300"
+                            className="text-2xl text-blue-300"
                         >
-                            Tutor{pet.tutores.length > 1 ? 'es' : ''}
+                            Tutor{pet.tutores && pet.tutores.length > 1 ? 'es' : ''}
                         </Text>
+                        <button
+                            onClick={() => setShowLinkModal(true)}
+                            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg text-sm"
+                        >
+                            + Vincular Tutor
+                        </button>
+                    </div>
+                    {pet.tutores && pet.tutores.length > 0 ? (
                         <div className="space-y-4">
                             {pet.tutores.map((tutor, index) => (
                                 <div key={tutor.id} className="bg-gray-700 rounded-lg p-4 space-y-3">
@@ -153,12 +183,81 @@ export default function PetDetailsPage() {
                                             />
                                         </div>
                                     )}
+
+                                    <div className="flex gap-2 pt-4 border-t border-gray-600">
+                                        <button
+                                            onClick={() => navigate(`/tutor/${tutor.id}`)}
+                                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+                                        >
+                                            Ver Tutor
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
+                    ) : (
+                        <Text variant="muted" className="text-center py-8">
+                            Nenhum tutor vinculado a este pet
+                        </Text>
+                    )}
+                </div>
             </CardBackground>
+
+            {/* Modal de Vinculação */}
+            {showLinkModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <CardBackground className="p-8 max-w-md w-full mx-4">
+                        <Text
+                            as="h2"
+                            variant="heading"
+                            className="text-2xl mb-4 text-blue-400"
+                        >
+                            Vincular Tutor
+                        </Text>
+
+                        {linkError && (
+                            <div className="bg-red-500 text-white p-3 rounded-lg mb-4">
+                                {linkError}
+                            </div>
+                        )}
+
+                        <div className="flex flex-col gap-4 mb-6">
+                            <label htmlFor="tutor-id" className="text-blue-300 font-semibold">
+                                ID do Tutor *
+                            </label>
+                            <input
+                                id="tutor-id"
+                                name="tutor-id"
+                                type="number"
+                                value={tutorIdToLink}
+                                onChange={(e) => setTutorIdToLink(e.target.value)}
+                                placeholder="Digite o ID do tutor"
+                                className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                            />
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleLinkTutor}
+                                disabled={linkingTutor || !tutorIdToLink}
+                                className="flex-1 bg-green-500 hover:bg-green-600 disabled:bg-gray-600 text-white font-bold py-2 rounded-lg"
+                            >
+                                {linkingTutor ? "Vinculando..." : "Vincular"}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowLinkModal(false);
+                                    setTutorIdToLink("");
+                                    setLinkError(null);
+                                }}
+                                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 rounded-lg"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </CardBackground>
+                </div>
+            )}
         </div>
     );
 }

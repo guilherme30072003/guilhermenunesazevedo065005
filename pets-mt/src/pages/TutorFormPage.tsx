@@ -1,22 +1,24 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { petService } from "../services/api";
+import { tutorService } from "../services/api";
+import { useInputMasks } from "../hooks/useInputMasks";
 import SetLogin from "../loaders/set-login";
 import CardBackground from "../components/card-background";
 import Text from "../components/text";
 
-export default function PetFormPage() {
+export default function TutorFormPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [Token, setToken] = useState<string | null>(null);
     const isEditMode = !!id;
-    const petId = id ? parseInt(id) : null;
+    const tutorId = id ? parseInt(id) : null;
+    const { maskPhone } = useInputMasks();
 
     const [formData, setFormData] = useState({
         nome: "",
-        raca: "",
-        idade: "",
-        especie: ""
+        telefone: "",
+        endereco: "",
+        email: ""
     });
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -26,33 +28,38 @@ export default function PetFormPage() {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        if (isEditMode && Token && petId) {
-            const fetchPet = async () => {
+        if (isEditMode && Token && tutorId) {
+            const fetchTutor = async () => {
                 try {
-                    const pet = await petService.getPetById(Token, petId);
+                    const tutor = await tutorService.getTutorById(Token, tutorId);
                     setFormData({
-                        nome: pet.nome,
-                        raca: pet.raca,
-                        idade: pet.idade.toString(),
-                        especie: pet.raca
+                        nome: tutor.nome,
+                        telefone: tutor.telefone || "",
+                        endereco: tutor.endereco || "",
+                        email: tutor.email || ""
                     });
-                    if (pet.foto?.url) {
-                        setPreview(pet.foto.url);
+                    if (tutor.foto?.url) {
+                        setPreview(tutor.foto.url);
                     }
                 } catch (err) {
-                    setError("Erro ao carregar dados do pet");
+                    setError("Erro ao carregar dados do tutor");
                 }
             };
-            fetchPet();
+            fetchTutor();
         }
-    }, [isEditMode, Token, petId]);
+    }, [isEditMode, Token, tutorId]);
 
     if (!Token) {
         return <SetLogin onTokenGerado={setToken} />;
     }
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        let { name, value } = e.target;
+
+        if (name === "telefone") {
+            value = maskPhone(value);
+        }
+
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -75,35 +82,32 @@ export default function PetFormPage() {
         setSuccess(false);
 
         try {
-            const petPayload = {
+            const tutorPayload = {
                 nome: formData.nome,
-                raca: formData.raca,
-                idade: parseInt(formData.idade),
-                especie: formData.especie
+                telefone: formData.telefone,
+                endereco: formData.endereco,
+                email: formData.email
             };
 
-            let createdPetId = petId;
+            let createdTutorId = tutorId;
 
-            if (isEditMode && petId) {
-                // Editar pet
-                await petService.updatePet(Token, petId, petPayload);
+            if (isEditMode && tutorId) {
+                await tutorService.updateTutor(Token, tutorId, tutorPayload);
             } else {
-                // Criar novo pet
-                const newPet = await petService.createPet(Token, petPayload);
-                createdPetId = newPet.id;
+                const newTutor = await tutorService.createTutor(Token, tutorPayload);
+                createdTutorId = newTutor.id;
             }
 
-            // Upload de foto se selecionado
-            if (selectedFile && createdPetId) {
-                await petService.uploadPetPhoto(Token, createdPetId, selectedFile);
+            if (selectedFile && createdTutorId) {
+                await tutorService.uploadTutorPhoto(Token, createdTutorId, selectedFile);
             }
 
             setSuccess(true);
             setTimeout(() => {
-                navigate(createdPetId ? `/pet/${createdPetId}` : "/");
+                navigate(createdTutorId ? `/tutor/${createdTutorId}` : "/");
             }, 1500);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro ao salvar pet");
+            setError(err instanceof Error ? err.message : "Erro ao salvar tutor");
         } finally {
             setLoading(false);
         }
@@ -125,7 +129,7 @@ export default function PetFormPage() {
                         variant="blast"
                         className="text-4xl font-bold text-blue-400 mb-2"
                     >
-                        {isEditMode ? "Editar Pet" : "Novo Pet"}
+                        {isEditMode ? "Editar Tutor" : "Novo Tutor"}
                     </Text>
                 </div>
 
@@ -137,7 +141,7 @@ export default function PetFormPage() {
 
                 {success && (
                     <div className="bg-green-500 text-white p-4 rounded-lg">
-                        Pet salvo com sucesso!
+                        Tutor salvo com sucesso!
                     </div>
                 )}
 
@@ -145,7 +149,7 @@ export default function PetFormPage() {
                     {/* Foto */}
                     <div className="flex flex-col gap-2">
                         <label htmlFor="foto" className="text-blue-300 font-semibold">
-                            Foto do Pet
+                            Foto do Tutor
                         </label>
                         {preview && (
                             <div className="flex justify-center mb-4">
@@ -166,10 +170,10 @@ export default function PetFormPage() {
                         />
                     </div>
 
-                    {/* Nome */}
+                    {/* Nome Completo */}
                     <div className="flex flex-col gap-2">
                         <label htmlFor="nome" className="text-blue-300 font-semibold">
-                            Nome *
+                            Nome Completo *
                         </label>
                         <input
                             id="nome"
@@ -178,61 +182,59 @@ export default function PetFormPage() {
                             value={formData.nome}
                             onChange={handleInputChange}
                             required
-                            placeholder="Digite o nome do pet"
+                            placeholder="Digite o nome completo"
                             className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
                         />
                     </div>
 
-                    {/* Espécie */}
+                    {/* Email */}
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="especie" className="text-blue-300 font-semibold">
-                            Espécie *
+                        <label htmlFor="email" className="text-blue-300 font-semibold">
+                            Email
                         </label>
                         <input
-                            id="especie"
-                            name="especie"
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            placeholder="Digite o email"
+                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                        />
+                    </div>
+
+                    {/* Telefone */}
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="telefone" className="text-blue-300 font-semibold">
+                            Telefone *
+                        </label>
+                        <input
+                            id="telefone"
+                            name="telefone"
                             type="text"
-                            value={formData.especie}
+                            value={formData.telefone}
                             onChange={handleInputChange}
                             required
-                            placeholder="Ex: Cão, Gato, Pássaro"
+                            placeholder="(11) 9999-9999"
+                            maxLength={15}
                             className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
                         />
                     </div>
 
-                    {/* Idade */}
+                    {/* Endereço */}
                     <div className="flex flex-col gap-2">
-                        <label htmlFor="idade" className="text-blue-300 font-semibold">
-                            Idade (anos) *
+                        <label htmlFor="endereco" className="text-blue-300 font-semibold">
+                            Endereço *
                         </label>
-                        <input
-                            id="idade"
-                            name="idade"
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={formData.idade}
+                        <textarea
+                            id="endereco"
+                            name="endereco"
+                            value={formData.endereco}
                             onChange={handleInputChange}
                             required
-                            placeholder="Digite a idade em anos"
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
-                        />
-                    </div>
-
-                    {/* Raça */}
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="raca" className="text-blue-300 font-semibold">
-                            Raça *
-                        </label>
-                        <input
-                            id="raca"
-                            name="raca"
-                            type="text"
-                            value={formData.raca}
-                            onChange={handleInputChange}
-                            required
-                            placeholder="Digite a raça do pet"
-                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400"
+                            placeholder="Digite o endereço completo"
+                            rows={4}
+                            className="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 resize-none"
                         />
                     </div>
 

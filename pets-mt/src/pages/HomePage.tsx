@@ -33,11 +33,16 @@ export default function HomePage() {
         <>
             <SetLogin onTokenGerado={setToken} />
 
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex-1" />
+            <div className="flex justify-center items-center gap-4 mt-2 mb-4">
+                <button
+                    onClick={() => navigate("/tutor/form/new")}
+                    className="bg-purple-500 hover:bg-purple-600 text-(--text) font-bold py-2 px-6 rounded-lg"
+                >
+                    + Novo Tutor
+                </button>
                 <button
                     onClick={() => navigate("/pet/form/new")}
-                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg"
+                    className="bg-green-500 hover:bg-green-600 text-(--text) font-bold py-2 px-6 rounded-lg"
                 >
                     + Novo Pet
                 </button>

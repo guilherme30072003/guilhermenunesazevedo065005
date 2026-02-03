@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+* {
+    font-family: 'Rubik', sans-serif;
+}
 
 @theme {
     --text: #EBEBEB;

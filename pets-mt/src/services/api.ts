@@ -93,5 +93,77 @@ export const tutorService = {
             console.error(`Erro ao buscar tutor ${id}:`, error);
             throw error;
         }
+    },
+
+    createTutor: async (token: string, tutorData: Omit<Tutor, 'id' | 'foto'>) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.post("/v1/tutores", tutorData);
+            return response.data as Tutor;
+        } catch (error) {
+            console.error("Erro ao criar tutor:", error);
+            throw error;
+        }
+    },
+
+    updateTutor: async (token: string, id: number, tutorData: Omit<Tutor, 'id' | 'foto'>) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.put(`/v1/tutores/${id}`, tutorData);
+            return response.data as Tutor;
+        } catch (error) {
+            console.error(`Erro ao atualizar tutor ${id}:`, error);
+            throw error;
+        }
+    },
+
+    uploadTutorPhoto: async (token: string, tutorId: number, file: File) => {
+        const authAxios = createAuthAxios(token);
+        const formData = new FormData();
+        formData.append('arquivo', file);
+        try {
+            const response = await authAxios.post(`/v1/tutores/${tutorId}/fotos`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error(`Erro ao fazer upload da foto do tutor ${tutorId}:`, error);
+            throw error;
+        }
+    },
+
+    linkPetToTutor: async (token: string, tutorId: number, petId: number) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.post(`/v1/tutores/${tutorId}/pets/${petId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Erro ao vincular pet ${petId} ao tutor ${tutorId}:`, error);
+            throw error;
+        }
+    },
+
+    unlinkPetFromTutor: async (token: string, tutorId: number, petId: number) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.delete(`/v1/tutores/${tutorId}/pets/${petId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Erro ao desvincular pet ${petId} do tutor ${tutorId}:`, error);
+            throw error;
+        }
+    },
+
+    getPetsByTutorId: async (token: string, tutorId: number) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.get(`/v1/tutores/${tutorId}/pets`);
+            return response.data as Pet[];
+        } catch (error) {
+            console.error(`Erro ao buscar pets do tutor ${tutorId}:`, error);
+            throw error;
+        }
     }
 };
