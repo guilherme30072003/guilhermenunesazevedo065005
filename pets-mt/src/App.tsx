@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Text from "./components/text";
 import HomePage from "./pages/HomePage";
 import PetDetailsPage from "./pages/PetDetailsPage";
+import PetFormPage from "./pages/PetFormPage";
 
 export default function App() {
   return (
@@ -17,6 +18,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/pet/:id" element={<PetDetailsPage />} />
+          <Route path="/pet/form/new" element={<PetFormPage />} />
+          <Route path="/pet/form/:id" element={<PetFormPage />} />
         </Routes>
       </main>
     </Router>

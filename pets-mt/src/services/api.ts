@@ -41,6 +41,45 @@ export const petService = {
             console.error(`Erro ao buscar pet ${id}:`, error);
             throw error;
         }
+    },
+
+    createPet: async (token: string, petData: Omit<Pet, 'id' | 'foto'>) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.post("/v1/pets", petData);
+            return response.data as Pet;
+        } catch (error) {
+            console.error("Erro ao criar pet:", error);
+            throw error;
+        }
+    },
+
+    updatePet: async (token: string, id: number, petData: Omit<Pet, 'id' | 'foto'>) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.put(`/v1/pets/${id}`, petData);
+            return response.data as Pet;
+        } catch (error) {
+            console.error(`Erro ao atualizar pet ${id}:`, error);
+            throw error;
+        }
+    },
+
+    uploadPetPhoto: async (token: string, petId: number, file: File) => {
+        const authAxios = createAuthAxios(token);
+        const formData = new FormData();
+        formData.append('arquivo', file);
+        try {
+            const response = await authAxios.post(`/v1/pets/${petId}/fotos`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error(`Erro ao fazer upload da foto do pet ${petId}:`, error);
+            throw error;
+        }
     }
 };
 

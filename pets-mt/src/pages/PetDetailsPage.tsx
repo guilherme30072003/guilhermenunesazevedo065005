@@ -43,12 +43,20 @@ export default function PetDetailsPage() {
 
     return (
         <div className="flex flex-col gap-8 p-6 max-w-2xl mx-auto">
-            <button
-                onClick={() => navigate("/")}
-                className="text-blue-400 hover:text-blue-300 mb-4"
-            >
-                ← Voltar
-            </button>
+            <div className="flex justify-between items-center">
+                <button
+                    onClick={() => navigate("/")}
+                    className="text-blue-400 hover:text-blue-300"
+                >
+                    ← Voltar
+                </button>
+                <button
+                    onClick={() => navigate(`/pet/form/${petId}`)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg"
+                >
+                    ✎ Editar
+                </button>
+            </div>
 
             <CardBackground className="flex flex-col gap-6 p-8">
                 {/* Nome em destaque */}

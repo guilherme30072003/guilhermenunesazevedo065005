@@ -32,6 +32,17 @@ export default function HomePage() {
     return (
         <>
             <SetLogin onTokenGerado={setToken} />
+
+            <div className="flex justify-between items-center mb-4">
+                <div className="flex-1" />
+                <button
+                    onClick={() => navigate("/pet/form/new")}
+                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg"
+                >
+                    + Novo Pet
+                </button>
+            </div>
+
             <SearchBar searchTerm={SearchTerm} onSearchChange={setSearchTerm} />
             {Token && <GetPets Token={Token} onGetPets={setPets} onGetPagesQuantidade={setPagesQuantidade} currentPage={CurrentPage} searchTerm={SearchTerm} />}
 
