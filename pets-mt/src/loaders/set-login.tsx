@@ -31,11 +31,11 @@ export default function SetLogin({ onTokenGerado }: SetLoginProps) {
 
             onTokenGerado(login.access_token)
 
-            console.log("Pegando Token...")
-            console.log(login.access_token)
+            // console.log("Pegando Token...")
+            // console.log(login.access_token)
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
         }
     }
 
@@ -51,4 +51,3 @@ export default function SetLogin({ onTokenGerado }: SetLoginProps) {
         </>
     )
 }
-
