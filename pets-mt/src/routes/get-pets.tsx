@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 interface GetLoginProps {
     Token: string | null;
@@ -17,11 +17,11 @@ interface GetLoginProps {
     }[]>>;
     onGetPagesQuantidade: React.Dispatch<React.SetStateAction<number | null>>;
     currentPage: number;
+    searchTerm: string;
 }
 
-export default function GetPets({ Token, onGetPets, onGetPagesQuantidade, currentPage }: GetLoginProps) {
+export default function GetPets({ Token, onGetPets, onGetPagesQuantidade, currentPage, searchTerm }: GetLoginProps) {
 
-    const executou = useRef(false);
 
     const authAxios = axios.create({
         baseURL: "https://pet-manager-api.geia.vip",
@@ -31,11 +31,12 @@ export default function GetPets({ Token, onGetPets, onGetPagesQuantidade, curren
     })
 
 
-    const getPets = async (page: number) => {
+    const getPets = async (page: number, search: string) => {
         try {
             const response = await authAxios.get("/v1/pets", {
                 params: {
-                    page: page
+                    page: page,
+                    nome: search || undefined
                 }
             });
             console.log(response);
@@ -74,14 +75,15 @@ export default function GetPets({ Token, onGetPets, onGetPagesQuantidade, curren
     useEffect(() => {
         if (!Token) return;
 
-        getPets(currentPage);
+        getPets(currentPage, searchTerm);
 
         console.log("Executou!");
         console.log("Usando Token...");
         console.log(Token);
         console.log("Página atual:", currentPage);
+        console.log("Termo de busca:", searchTerm);
 
-    }, [Token, currentPage])
+    }, [Token, currentPage, searchTerm])
 
 
 

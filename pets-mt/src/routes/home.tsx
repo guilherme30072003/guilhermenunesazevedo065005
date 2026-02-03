@@ -3,6 +3,7 @@ import SetLogin from "./set-login";
 import GetPets from "./get-pets";
 import Card from "../components/card";
 import Button from "../components/button";
+import SearchBar from "../components/search-bar";
 
 
 
@@ -23,12 +24,14 @@ export default function Home() {
     }[]>([]);
     const [PagesQuantidade, setPagesQuantidade] = useState<number | null>(null);
     const [CurrentPage, setCurrentPage] = useState<number>(0);
+    const [SearchTerm, setSearchTerm] = useState<string>("");
 
 
     return (
         <>
             <SetLogin onTokenGerado={setToken} />
-            {Token && <GetPets Token={Token} onGetPets={setPets} onGetPagesQuantidade={setPagesQuantidade} currentPage={CurrentPage} />}
+            <SearchBar searchTerm={SearchTerm} onSearchChange={setSearchTerm} />
+            {Token && <GetPets Token={Token} onGetPets={setPets} onGetPagesQuantidade={setPagesQuantidade} currentPage={CurrentPage} searchTerm={SearchTerm} />}
 
             <div className="flex items-center justify-center p-2 gap-2">
 
@@ -39,8 +42,8 @@ export default function Home() {
                         key={index}
                         onClick={() => setCurrentPage(index)}
                         className={`flex items-center justify-center rounded-xl p-3 cursor-pointer ${CurrentPage === index
-                                ? 'bg-linear-(--gradient) text-white font-bold'
-                                : 'bg-gray-400 hover:bg-gray-500'
+                            ? 'bg-linear-(--gradient) text-white font-bold'
+                            : 'bg-gray-400 hover:bg-gray-500'
                             }`}
                     >
                         {index + 1}

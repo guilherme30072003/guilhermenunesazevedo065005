@@ -1,16 +1,20 @@
 import CardBackground from "./card-background"
-import Text from "./text"
 
-export default function SearchBar() {
+interface SearchBarProps {
+    searchTerm: string;
+    onSearchChange: (value: string) => void;
+}
+
+export default function SearchBar({ searchTerm, onSearchChange }: SearchBarProps) {
     return (
         <CardBackground className="flex flex-row w-full py-10 px-8">
-            <Text
-                as="h1"
-                variant="muted"
-                className="select-none"
-            >
-                Pesquise um pet
-            </Text>
+            <input
+                type="text"
+                placeholder="Pesquise um pet"
+                value={searchTerm}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full bg-transparent text-white placeholder-gray-400 outline-none text-lg"
+            />
         </CardBackground>
     )
 }
