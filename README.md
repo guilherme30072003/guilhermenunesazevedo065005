@@ -25,6 +25,10 @@
 ## Sobre a aplicação
 A aplicação é uma Single Page Application (SPA) desenvolvida com **React 19.2.0** e **TypeScript 5.9.3**, implementando uma arquitetura modular baseada em componentes com separação de responsabilidades. Também utiliza bibliotecas como Axios para fazer chamadas a API, React Router para simular navegação de páginas dentro do SPA e Tailwind para auxiliar no estilo da aplicação.
 
+A arquitetura implementa dois padrões principais:
+- **Padrão Facade**: Simplifica a interação entre componentes e serviços
+- **Gerenciamento de Estado com RxJS**: Usa BehaviorSubject para estado reativo centralizado
+
 ### 🔐 Sistema de Autenticação
 A aplicação implementa um sistema robusto de autenticação com refresh automático de tokens:
 - **Login**: Credenciais (username/password) → access_token + refresh_token
@@ -103,10 +107,13 @@ src/
 │   └── *.test.tsx       # Testes dos componentes
 ├── context/             # Contextos React (autenticação)
 │   └── AuthContext.tsx  # Gerenciamento de estado de autenticação
+├── facade/              # Padrão Facade (camada de abstração)
+│   └── ApplicationFacade.ts # Interface simplificada de negócio
 ├── hooks/               # Hooks personalizados
 │   ├── useInputMasks.ts # Formatação de entrada (telefone, CPF)
+│   ├── useAuth.ts       # Gerenciamento de autenticação
 │   ├── usePetDetails.ts # Busca de detalhes do pet
-│   └── useAuth.ts       # Gerenciamento de autenticação
+│   └── useObservable.ts # Conversão de RxJS Observable → React state
 ├── pages/               # Páginas principais da aplicação
 │   ├── LoginPage.tsx
 │   ├── HomePage.tsx
@@ -114,10 +121,12 @@ src/
 │   ├── PetFormPage.tsx
 │   ├── TutorDetailsPage.tsx
 │   └── TutorFormPage.tsx
-├── services/            # Serviços de API e lógica de negócio
+├── services/            # Serviços HTTP (camada de rede)
 │   ├── api.ts           # Cliente HTTP com Axios
 │   ├── api.test.ts      # Testes dos serviços
 │   └── axiosSetup.ts    # Configuração de interceptadores
+├── store/               # Gerenciamento de estado com RxJS
+│   └── StateStore.ts    # BehaviorSubject para estado reativo
 ├── loaders/             # Data loaders para pré-carregar dados
 │   ├── get-pets.tsx
 │   └── set-login.tsx
@@ -169,13 +178,35 @@ src/
 **useAuth**
 ```typescript
 // Gerencia autenticação (login, refresh, logout)
-const { isAuthenticated, accessToken, login, refresh, logout } = useAuth();
+// Usa o Facade (ApplicationFacade) por baixo
+const { isAuthenticated, accessToken, login, logout } = useAuth();
 
-// Login
-await login('admin', 'admin'); // → { access_token, refresh_token }
+await login('admin', 'admin');  // Usa appFacade.login()
+logout();                        // Usa appFacade.logout()
+```
 
-// Logout
-logout(); // Limpa tokens e localStorage
+**useObservable**
+```typescript
+// Converte RxJS Observables em React state
+// Simplifica o uso de BehaviorSubjects em componentes
+const authState = useObservable(stateStore.auth$, initialValue);
+const petsState = useObservable(stateStore.pets$, initialValue);
+```
+
+**useAppState**
+```typescript
+// Acesso completo ao estado global da aplicação
+const { auth, pets, tutors, app } = useAppState();
+
+// Uso em componentes
+function HomePage() {
+    const { pets, loading } = useAppState();
+    return (
+        <div>
+            {loading ? <Spinner /> : <PetsList pets={pets.pets} />}
+        </div>
+    );
+}
 ```
 
 **useInputMasks**
@@ -227,6 +258,43 @@ tutorService.getPetsByTutorId(token, tutorId)
 - ✅ Interceptor automático de refresh de tokens
 - ✅ Testes unitários (api.test.ts)
 
+#### **6. Store Layer (StateStore com RxJS)**
+
+Gerencia estado centralizado com BehaviorSubjects:
+
+```typescript
+// StateStore - Fonte única de verdade
+export class StateStore {
+    // BehaviorSubjects privados
+    private authSubject = new BehaviorSubject<AuthState>(initial);
+    private petSubject = new BehaviorSubject<PetState>(initial);
+
+    // Observables públicos (read-only)
+    readonly auth$ = this.authSubject.asObservable();
+    readonly pets$ = this.petSubject.asObservable();
+
+    // Métodos para atualizar estado
+    setAuthSuccess(token: string, refreshToken: string) {
+        this.authSubject.next({ ... });
+    }
+
+    addPet(pet: Pet) {
+        const current = this.petSubject.value;
+        this.petSubject.next({ ...current, pets: [...] });
+    }
+}
+
+// Uso em componentes
+const authState = useObservable(stateStore.auth$, initial);
+const petsState = useObservable(stateStore.pets$, initial);
+```
+
+**Características:**
+- ✅ Fonte única de verdade (SSOT)
+- ✅ Reatividade automática
+- ✅ Estado imutável
+- ✅ Sincronização automática entre componentes
+
 #### **5. Types (Definições de Tipos)**
 
 ```typescript
@@ -270,7 +338,40 @@ interface PetDetalhes extends Pet {
 
 ### 🎯 Padrões e Melhores Práticas
 
-#### **1. Autenticação com Context API**
+#### **1. Padrão Facade com Arquitetura em Camadas**
+
+A aplicação implementa uma arquitetura em **4 camadas** com o padrão Facade:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Presentation Layer (Componentes React)             │
+│  - LoginPage, HomePage, PetDetailsPage, etc.       │
+└────────────────┬────────────────────────────────────┘
+                 │
+                 ↓ usa
+┌─────────────────────────────────────────────────────┐
+│  Facade Layer (ApplicationFacade)                    │
+│  - login(), loadPets(), updatePet(), etc.          │
+│  - Simplifica operações complexas                   │
+│  - Orquestra chamadas de serviços e estado         │
+└────────────────┬────────────────────────────────────┘
+                 │
+      ┌──────────┼──────────┐
+      ↓          ↓          ↓
+┌──────────┐  ┌────────┐  ┌───────────┐
+│  State   │  │Services│  │Interceptor│
+│  Layer   │  │ Layer  │  │ Layer     │
+│(RxJS)    │  │(API)   │  │(Axios)    │
+└──────────┘  └────────┘  └───────────┘
+```
+
+**Benefícios:**
+- ✅ Separação clara de responsabilidades
+- ✅ Componentes não precisam conhecer detalhes da API
+- ✅ Fácil testes (mock do Facade)
+- ✅ Código mais legível e manutenível
+
+#### **2. Autenticação com Context API**
 ```typescript
 // Usar contexto para compartilhar estado de autenticação
 <AuthProvider>
@@ -284,7 +385,70 @@ const { isAuthenticated, accessToken, login, logout } = useAuthContext();
 - ✅ Tokens persistidos no localStorage
 - ✅ Refresh automático transparente ao usuário
 
-#### **2. Interceptor de Refresh Automático**
+#### **2. Gerenciamento de Estado Reativo com RxJS e BehaviorSubject**
+
+```typescript
+// StateStore.ts - Gerenciador centralizado com RxJS
+export class StateStore {
+    // BehaviorSubjects privados (fonte única de verdade)
+    private authSubject = new BehaviorSubject<AuthState>(initialAuthState);
+    private petSubject = new BehaviorSubject<PetState>(initialPetState);
+    private tutorSubject = new BehaviorSubject<TutorState>(initialTutorState);
+
+    // Observables públicos (read-only)
+    readonly auth$ = this.authSubject.asObservable();
+    readonly pets$ = this.petSubject.asObservable();
+    readonly tutors$ = this.tutorSubject.asObservable();
+
+    // Métodos para atualizar estado
+    setAuthSuccess(token: string, refreshToken: string) {
+        this.authSubject.next({ isAuthenticated: true, ... });
+    }
+
+    addPet(pet: Pet) {
+        const current = this.petSubject.value;
+        this.petSubject.next({ ...current, pets: [pet, ...current.pets] });
+    }
+}
+
+// useObservable.ts - Hook para consumir observables no React
+export function useObservable<T>(observable: Observable<T>): T {
+    const [state, setState] = useState<T>(initialValue);
+    
+    useEffect(() => {
+        const subscription = observable.subscribe(setState);
+        return () => subscription.unsubscribe();
+    }, [observable]);
+
+    return state;
+}
+
+// Uso em componentes
+const { pets, loading } = useAppState();
+```
+
+**Benefícios:**
+- ✅ Fonte única de verdade (Single Source of Truth)
+- ✅ Reatividade built-in
+- ✅ Fácil debug com RxJS DevTools
+- ✅ Performance otimizada (observables)
+- ✅ Funciona perfeitamente com async/await
+
+#### **3. Contexto de Autenticação com Context API**
+```typescript
+const PetDetailsPage = lazy(() => import("./pages/PetDetailsPage"));
+
+<Suspense fallback={<LoadingFallback />}>
+  <Routes>
+    <Route path="/pet/:id" element={<PetDetailsPage />} />
+  </Routes>
+</Suspense>
+```
+- ✅ Reduz tamanho do bundle inicial
+- ✅ Carrega módulos sob demanda
+- ✅ Melhor performance
+
+#### **4. Interceptor de Refresh Automático**
 ```typescript
 // Configurado uma vez na inicialização
 setupAxiosInterceptors(
@@ -303,21 +467,7 @@ setupAxiosInterceptors(
 - ✅ Sem propagação de erros 401
 - ✅ Melhor UX (usuário nunca vê erro de expiração)
 
-#### **3. Lazy Loading com Suspense**
-```typescript
-const PetDetailsPage = lazy(() => import("./pages/PetDetailsPage"));
-
-<Suspense fallback={<LoadingFallback />}>
-  <Routes>
-    <Route path="/pet/:id" element={<PetDetailsPage />} />
-  </Routes>
-</Suspense>
-```
-- ✅ Reduz tamanho do bundle inicial
-- ✅ Carrega módulos sob demanda
-- ✅ Melhor performance
-
-#### **2. Type Safety Completo**
+#### **5. Lazy Loading com Suspense**
 ```typescript
 // Sem any, sem coerção de tipos
 // TypeScript captura erros antes da execução
@@ -459,6 +609,7 @@ npm test:coverage          // Cobertura
 | Vite | 7.2.4 | Build tool |
 | Tailwind CSS | 4.1.18 | Styling |
 | Axios | 1.13.4 | HTTP client |
+| RxJS | 7.8.1 | Gerenciamento de estado reativo |
 | Vitest | 4.0.18 | Testes unitários |
 | Testing Library | 16.3.2 | Testes de componentes |
 
