@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+.env.local
+.DS_Store
+.vscode
+.idea
+*.md
+.eslintrc
+vitest.config.ts
+TESTES.md
+DOCKER.md
+src/
+public/index.html

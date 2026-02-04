@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  pets-mt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pets-mt-app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    # Health Check
+    healthcheck:
+      test: ["CMD", "node", "/app/scripts/healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    # Restart Policy
+    restart: unless-stopped
+    # Resource Limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Labels para orquestração
+    labels:
+      - "app=pets-mt"
+      - "version=1.0.0"
