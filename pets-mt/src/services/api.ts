@@ -1,7 +1,27 @@
 import axios from "axios";
+import type { AxiosInstance } from "axios";
 import type { Pet, Tutor } from "../types";
 
 const API_BASE_URL = "https://pet-manager-api.geia.vip";
+
+export interface AuthResponse {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+    refresh_expires_in: number;
+    token_type?: string;
+}
+
+// Instância global do Axios (será configurada com interceptor)
+let globalApiClient: AxiosInstance | null = null;
+
+export const setGlobalApiClient = (client: AxiosInstance) => {
+    globalApiClient = client;
+};
+
+export const getGlobalApiClient = () => {
+    return globalApiClient || axios.create({ baseURL: API_BASE_URL });
+};
 
 export const createAuthAxios = (token: string) => {
     return axios.create({
@@ -10,6 +30,39 @@ export const createAuthAxios = (token: string) => {
             Authorization: `Bearer ${token}`
         }
     });
+};
+
+export const authService = {
+    login: async (username: string, password: string) => {
+        try {
+            const response = await axios.post<AuthResponse>(`${API_BASE_URL}/autenticacao/login`, {
+                username,
+                password
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao fazer login:", error);
+            throw error;
+        }
+    },
+
+    refresh: async (refreshToken: string) => {
+        try {
+            const response = await axios.put<AuthResponse>(
+                `${API_BASE_URL}/autenticacao/refresh`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${refreshToken}`
+                    }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao fazer refresh de token:", error);
+            throw error;
+        }
+    }
 };
 
 export const petService = {

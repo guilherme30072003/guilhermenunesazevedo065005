@@ -20,10 +20,17 @@
 | Engenheiro da Computação - Sênior  |
 
 ## O que é Pets MT?
-É um registro público que permite cadastrar, editar e apresentar dados de Pets e tutores do Estado de Mato Grosso.
+É um registro público que permite cadastrar, editar, excluir e apresentar dados de Pets e tutores do Estado de Mato Grosso.
 
 ## Sobre a aplicação
 A aplicação é uma Single Page Application (SPA) desenvolvida com **React 19.2.0** e **TypeScript 5.9.3**, implementando uma arquitetura modular baseada em componentes com separação de responsabilidades. Também utiliza bibliotecas como Axios para fazer chamadas a API, React Router para simular navegação de páginas dentro do SPA e Tailwind para auxiliar no estilo da aplicação.
+
+### 🔐 Sistema de Autenticação
+A aplicação implementa um sistema robusto de autenticação com refresh automático de tokens:
+- **Login**: Credenciais (username/password) → access_token + refresh_token
+- **Requisições**: Todas as requisições usam o access_token no header Authorization
+- **Refresh Automático**: Se uma requisição retorna 401, o refresh_token é usado para obter novos tokens
+- **Logout Automático**: Se o refresh falha, o usuário é redirecionado para o login
 
 
 # Como executar?
@@ -94,10 +101,14 @@ src/
 │   ├── search-bar.tsx
 │   ├── text.tsx
 │   └── *.test.tsx       # Testes dos componentes
+├── context/             # Contextos React (autenticação)
+│   └── AuthContext.tsx  # Gerenciamento de estado de autenticação
 ├── hooks/               # Hooks personalizados
 │   ├── useInputMasks.ts # Formatação de entrada (telefone, CPF)
-│   └── usePetDetails.ts # Busca de detalhes do pet
+│   ├── usePetDetails.ts # Busca de detalhes do pet
+│   └── useAuth.ts       # Gerenciamento de autenticação
 ├── pages/               # Páginas principais da aplicação
+│   ├── LoginPage.tsx
 │   ├── HomePage.tsx
 │   ├── PetDetailsPage.tsx
 │   ├── PetFormPage.tsx
@@ -105,7 +116,8 @@ src/
 │   └── TutorFormPage.tsx
 ├── services/            # Serviços de API e lógica de negócio
 │   ├── api.ts           # Cliente HTTP com Axios
-│   └── api.test.ts      # Testes dos serviços
+│   ├── api.test.ts      # Testes dos serviços
+│   └── axiosSetup.ts    # Configuração de interceptadores
 ├── loaders/             # Data loaders para pré-carregar dados
 │   ├── get-pets.tsx
 │   └── set-login.tsx
@@ -139,6 +151,7 @@ src/
 
 | Página | Funcionalidade |
 |--------|----------------|
+| `LoginPage` | Formulário de autenticação (username/password) com refresh automático |
 | `HomePage` | Listagem paginada de pets com busca |
 | `PetDetailsPage` | Detalhes completos do pet com tutores vinculados e opção de deletar |
 | `PetFormPage` | Criar/editar pet com upload de foto |
@@ -152,6 +165,18 @@ src/
 - ✅ Integram múltiplos componentes
 
 #### **3. Hooks Personalizados**
+
+**useAuth**
+```typescript
+// Gerencia autenticação (login, refresh, logout)
+const { isAuthenticated, accessToken, login, refresh, logout } = useAuth();
+
+// Login
+await login('admin', 'admin'); // → { access_token, refresh_token }
+
+// Logout
+logout(); // Limpa tokens e localStorage
+```
 
 **useInputMasks**
 ```typescript
@@ -173,6 +198,10 @@ const { pet, loading, error } = usePetDetails(token, petId);
 Centraliza toda comunicação HTTP com o backend:
 
 ```typescript
+// Auth Service
+authService.login(username, password)          // POST /autenticacao/login
+authService.refresh(refreshToken)              // PUT /autenticacao/refresh
+
 // Pet Service
 petService.getPets(token, page, searchTerm)
 petService.getPetById(token, id)
@@ -195,6 +224,7 @@ tutorService.getPetsByTutorId(token, tutorId)
 - ✅ Client Axios com headers de autenticação
 - ✅ Tipagem completa com TypeScript
 - ✅ Tratamento de erros centralizado
+- ✅ Interceptor automático de refresh de tokens
 - ✅ Testes unitários (api.test.ts)
 
 #### **5. Types (Definições de Tipos)**
@@ -240,7 +270,40 @@ interface PetDetalhes extends Pet {
 
 ### 🎯 Padrões e Melhores Práticas
 
-#### **1. Lazy Loading com Suspense**
+#### **1. Autenticação com Context API**
+```typescript
+// Usar contexto para compartilhar estado de autenticação
+<AuthProvider>
+  <AppContent />
+</AuthProvider>
+
+// Em qualquer componente
+const { isAuthenticated, accessToken, login, logout } = useAuthContext();
+```
+- ✅ Estado de autenticação centralizado
+- ✅ Tokens persistidos no localStorage
+- ✅ Refresh automático transparente ao usuário
+
+#### **2. Interceptor de Refresh Automático**
+```typescript
+// Configurado uma vez na inicialização
+setupAxiosInterceptors(
+  getAccessToken,   // Função que retorna access_token atual
+  getRefreshToken,  // Função que retorna refresh_token atual
+  onRefresh,        // Callback quando token é renovado
+  onTokenExpired    // Callback quando refresh falha
+);
+
+// Resultado:
+// - Requisições 401 disparam refresh automático
+// - Requisição original é retentada com novo token
+// - Se refresh falha, usuário é deslogado
+```
+- ✅ Transparente para componentes
+- ✅ Sem propagação de erros 401
+- ✅ Melhor UX (usuário nunca vê erro de expiração)
+
+#### **3. Lazy Loading com Suspense**
 ```typescript
 const PetDetailsPage = lazy(() => import("./pages/PetDetailsPage"));
 
@@ -284,34 +347,65 @@ useEffect(() => {
 
 #### **5. Separação de Responsabilidades**
 ```
-Components → Renderização e interação visual
-Pages      → Lógica de página e fluxo
-Services   → Comunicação com API
-Hooks      → Lógica reutilizável
-Types      → Contrato de dados
+LoginPage        → UI de autenticação
+AuthContext      → Estado de autenticação (global)
+useAuth          → Lógica de autenticação
+authService      → Chamadas HTTP de autenticação
+axiosSetup       → Interceptador de refresh automático
+ProtectedRoute   → Guarda de rota com autenticação
+Components       → Renderização e interação visual
+Pages            → Lógica de página e fluxo
+Services         → Comunicação com API
+Hooks            → Lógica reutilizável
+Types            → Contrato de dados
 ```
 
 ### 🔐 Autenticação e Autorização
 
 ```typescript
-// Auto-login via set-login.tsx
-POST /autenticacao/login → Recebe access_token
-Token armazenado na memória (useState)
-Passado em todas requisições via header Authorization
+// Fluxo de autenticação:
+1. Usuário entra em /login
+2. Submete username + password
+3. POST /autenticacao/login → { access_token, refresh_token }
+4. Tokens armazenados no localStorage
+5. Usuário redirecionado para home
+
+// Requisições subsequentes:
+6. Todas requisições incluem access_token no header Authorization
+7. Se 401 recebido → PUT /autenticacao/refresh com refresh_token
+8. Novo access_token + refresh_token retornados
+9. Requisição original é retentada com novo token
+10. Se refresh falha → Logout automático e redirecionamento para login
+
+// Contexto de autenticação:
+<AuthProvider>
+  ↓
+  <useAuthContext> → { isAuthenticated, accessToken, login, logout }
+  ↓
+  <ProtectedRoute> → Redireciona para /login se não autenticado
 ```
+
+**Armazenamento de Tokens:**
+- `localStorage.pets_mt_access_token` - Access token (curta duração)
+- `localStorage.pets_mt_refresh_token` - Refresh token (longa duração)
+- Tokens persistem entre sessões (refresh automático ao carregar app)
 
 ### 🔗 Roteamento
 
 ```typescript
 // React Router v7.13.0 - Roteamento declarativo
 
-GET  /                    → HomePage (listagem)
-GET  /pet/:id             → PetDetailsPage (detalhes)
-GET  /pet/form/new        → PetFormPage (criar)
-PUT  /pet/form/:id        → PetFormPage (editar)
-GET  /tutor/:id           → TutorDetailsPage (detalhes)
-GET  /tutor/form/new      → TutorFormPage (criar)
-PUT  /tutor/form/:id      → TutorFormPage (editar)
+GET  /login              → LoginPage (sem autenticação)
+GET  /                   → HomePage (com autenticação)
+GET  /pet/:id            → PetDetailsPage (com autenticação)
+GET  /pet/form/new       → PetFormPage (com autenticação)
+PUT  /pet/form/:id       → PetFormPage (com autenticação)
+GET  /tutor/:id          → TutorDetailsPage (com autenticação)
+GET  /tutor/form/new     → TutorFormPage (com autenticação)
+PUT  /tutor/form/:id     → TutorFormPage (com autenticação)
+
+// Rotas protegidas redirecionam para /login se não autenticado
+// Todas as rotas da aplicação usam o contexto AuthContext
 ```
 
 ### 💅 Styling com Tailwind CSS 4.1.18
@@ -469,8 +563,10 @@ Testa as funções de máscara de entrada:
   - Formato: 123.456.789-01
   - Remove caracteres não-numéricos
 
-### 4. **api.test.ts**
+### 2. **api.test.ts**
 Testa as funções de serviço de API:
+- `authService.login()` - Fazer login com username/password
+- `authService.refresh()` - Renovar tokens com refresh_token
 - `petService.getPets()` - Listar pets com paginação e busca
 - `petService.getPetById()` - Buscar um pet por ID
 - `petService.deletePet()` - Deletar um pet por ID

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { petService, tutorService } from './api';
+import { petService, tutorService, authService } from './api';
 import axios from 'axios';
 
 vi.mock('axios');
@@ -10,6 +10,53 @@ describe('API Services', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+    });
+
+    describe('authService.login', () => {
+        it('should login successfully with valid credentials', async () => {
+            const mockResponse = {
+                access_token: 'test-access-token',
+                refresh_token: 'test-refresh-token',
+                expires_in: 3600,
+                refresh_expires_in: 86400
+            };
+
+            mockAxios.post.mockResolvedValue({ data: mockResponse });
+
+            const result = await authService.login('admin', 'admin');
+            expect(result.access_token).toBe('test-access-token');
+            expect(result.refresh_token).toBe('test-refresh-token');
+        });
+
+        it('should handle login error', async () => {
+            const error = new Error('Invalid credentials');
+            mockAxios.post.mockRejectedValue(error);
+
+            await expect(authService.login('admin', 'wrong')).rejects.toThrow('Invalid credentials');
+        });
+    });
+
+    describe('authService.refresh', () => {
+        it('should refresh token successfully', async () => {
+            const mockResponse = {
+                access_token: 'new-access-token',
+                refresh_token: 'new-refresh-token',
+                expires_in: 3600,
+                refresh_expires_in: 86400
+            };
+
+            mockAxios.put.mockResolvedValue({ data: mockResponse });
+
+            const result = await authService.refresh('old-refresh-token');
+            expect(result.access_token).toBe('new-access-token');
+        });
+
+        it('should handle refresh error', async () => {
+            const error = new Error('Refresh token expired');
+            mockAxios.put.mockRejectedValue(error);
+
+            await expect(authService.refresh('invalid-token')).rejects.toThrow('Refresh token expired');
+        });
     });
 
     describe('petService.getPets', () => {
