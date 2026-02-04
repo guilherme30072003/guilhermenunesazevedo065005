@@ -1,14 +1,32 @@
 # Projeto Front End - Pets MT - guilhermenunesazevedo065005
 
 ## Sumário
-- [](#introdução)
-- [](#como-executar)
+- [Introdução](#introdução)
+- [Como executar?](#como-executar)
 - [Arquitetura](#arquitetura)
-- [Testes Unitários](#testes-unitários)
+- [Como testar? - Testes Unitários](#como-testar---testes-unitários)
 - [Containerização com Docker e Deploy](#containerização-com-docker-e-deploy)
 
+# Introdução
+## Dados de inscrição
+| Inscrição | Nome | Data de Nascimento | PCD |
+|----------|----------|----------|----------|
+| 16300  | GUILHERME NUNES AZEVEDO  | 30/07/2003 | Não
 
-# Como executar
+
+## Vaga
+| ANALISTA DE TI - PERFIL PROFISSIONAL/ESPECIALIDADE | 
+|----------|
+| Engenheiro da Computação - Sênior  |
+
+## O que é Pets MT?
+É um registro público que permite cadastrar, editar e apresentar dados de Pets e tutores do Estado de Mato Grosso.
+
+## Sobre a aplicação
+A aplicação é uma Single Page Application (SPA) desenvolvida com **React 19.2.0** e **TypeScript 5.9.3**, implementando uma arquitetura modular baseada em componentes com separação de responsabilidades. Também utiliza bibliotecas como Axios para fazer chamadas a API, React Router para simular navegação de páginas dentro do SPA e Tailwind para auxiliar no estilo da aplicação.
+
+
+# Como executar?
 A aplicação foi empacotada em um container Docker que pode ser executada da seguinte forma:
 ## 📖 Guia Passo-a-Passo
 
@@ -43,6 +61,8 @@ pets-mt-app   serve -s dist...   Up 10 seconds (healthy) ✓
 http://localhost:3000
 ```
 
+#### Se desejar, também é possível
+
 ### Passo 6: Ver logs
 ```bash
 docker-compose logs -f pets-mt
@@ -57,6 +77,297 @@ docker-compose down
 # Arquitetura
 
 ## React
+
+### 🏗️ Visão Geral da Arquitetura
+
+A aplicação é uma Single Page Application (SPA) desenvolvida com **React 19.2.0** e **TypeScript 5.9.3**, implementando uma arquitetura modular baseada em componentes com separação clara de responsabilidades. Também utiliza bibliotecas como Axios para fazer as chamadas a API, React Router para simular navegação de páginas dentro do SPA e Tailwind para auxiliar no estilo da aplicação.
+
+### 📁 Estrutura de Pastas
+
+```
+src/
+├── components/          # Componentes reutilizáveis
+│   ├── button.tsx
+│   ├── card-background.tsx
+│   ├── card-data.tsx
+│   ├── card.tsx
+│   ├── search-bar.tsx
+│   ├── text.tsx
+│   └── *.test.tsx       # Testes dos componentes
+├── hooks/               # Hooks personalizados
+│   ├── useInputMasks.ts # Formatação de entrada (telefone, CPF)
+│   └── usePetDetails.ts # Busca de detalhes do pet
+├── pages/               # Páginas principais da aplicação
+│   ├── HomePage.tsx
+│   ├── PetDetailsPage.tsx
+│   ├── PetFormPage.tsx
+│   ├── TutorDetailsPage.tsx
+│   └── TutorFormPage.tsx
+├── services/            # Serviços de API e lógica de negócio
+│   ├── api.ts           # Cliente HTTP com Axios
+│   └── api.test.ts      # Testes dos serviços
+├── loaders/             # Data loaders para pré-carregar dados
+│   ├── get-pets.tsx
+│   └── set-login.tsx
+├── types/               # Definições de tipos TypeScript
+│   └── index.ts
+├── App.tsx              # Componente raiz com roteamento
+├── main.tsx             # Ponto de entrada
+└── index.css            # Estilos globais (Tailwind CSS)
+```
+
+### 📦 Módulos e Responsabilidades
+
+#### **1. Components (Componentes Reutilizáveis)**
+
+| Componente | Responsabilidade |
+|-----------|-----------------|
+| `Text` | Renderização de textos com variantes (heading, default, muted, blast) |
+| `Button` | Botões estilizados com Tailwind CSS |
+| `Card` | Cards para exibição de dados (pets/tutores) |
+| `CardBackground` | Container com estilo de fundo da aplicação |
+| `CardData` | Componente para estrutura de dados em cards |
+| `SearchBar` | Input de busca com sincronização de estado |
+
+**Características:**
+- ✅ Totalmente reutilizáveis
+- ✅ Sem estado (stateless)
+- ✅ Recebem dados via props
+- ✅ Testes unitários inclusos
+
+#### **2. Pages (Páginas Principais)**
+
+| Página | Funcionalidade |
+|--------|----------------|
+| `HomePage` | Listagem paginada de pets com busca |
+| `PetDetailsPage` | Detalhes completos do pet com tutores vinculados |
+| `PetFormPage` | Criar/editar pet com upload de foto |
+| `TutorDetailsPage` | Detalhes do tutor com pets vinculados |
+| `TutorFormPage` | Criar/editar tutor com upload de foto |
+
+**Características:**
+- ✅ Carregadas via lazy loading (React.lazy)
+- ✅ Suspense fallback com LoadingFallback
+- ✅ Gerenciam estado local (useState)
+- ✅ Integram múltiplos componentes
+
+#### **3. Hooks Personalizados**
+
+**useInputMasks**
+```typescript
+// Fornece formatação de entrada
+const { maskPhone, maskCPF } = useInputMasks();
+
+maskPhone('11999887766')    // → (11) 99988-7766
+maskCPF('12345678901')      // → 123.456.789-01
+```
+
+**usePetDetails**
+```typescript
+// Busca detalhes do pet com tutores associados
+const { pet, loading, error } = usePetDetails(token, petId);
+```
+
+#### **4. Services (Camada de API)**
+
+Centraliza toda comunicação HTTP com o backend:
+
+```typescript
+// Pet Service
+petService.getPets(token, page, searchTerm)
+petService.getPetById(token, id)
+petService.createPet(token, petData)
+petService.updatePet(token, id, petData)
+petService.uploadPetPhoto(token, petId, file)
+
+// Tutor Service
+tutorService.getTutorById(token, id)
+tutorService.createTutor(token, tutorData)
+tutorService.updateTutor(token, id, tutorData)
+tutorService.uploadTutorPhoto(token, tutorId, file)
+tutorService.linkPetToTutor(token, tutorId, petId)
+tutorService.unlinkPetFromTutor(token, tutorId, petId)
+tutorService.getPetsByTutorId(token, tutorId)
+```
+
+**Características:**
+- ✅ Client Axios com headers de autenticação
+- ✅ Tipagem completa com TypeScript
+- ✅ Tratamento de erros centralizado
+- ✅ Testes unitários (api.test.ts)
+
+#### **5. Types (Definições de Tipos)**
+
+```typescript
+// Entidade Pet
+interface Pet {
+    id: number;
+    nome: string;
+    raca: string;
+    idade: number;
+    foto: { id, nome, contentType, url };
+    tutorIds?: number[];
+}
+
+// Entidade Tutor
+interface Tutor {
+    id: number;
+    nome: string;
+    email?: string;
+    telefone?: string;
+    endereco?: string;
+    cpf?: number;
+    foto?: { id, nome, contentType, url };
+}
+
+// Pet com detalhes (herança)
+interface PetDetalhes extends Pet {
+    tutores?: Tutor[];
+}
+```
+
+**Características:**
+- ✅ Tipagem forte em toda aplicação
+- ✅ Evita erros em tempo de compilação
+- ✅ Melhor autocompletar no IDE
+
+#### **6. Loaders (Pré-carregamento de Dados)**
+
+- get-pets.tsx → Busca lista paginada de pets
+- set-login.tsx → Auto-autenticação ao carregar
+
+
+### 🎯 Padrões e Melhores Práticas
+
+#### **1. Lazy Loading com Suspense**
+```typescript
+const PetDetailsPage = lazy(() => import("./pages/PetDetailsPage"));
+
+<Suspense fallback={<LoadingFallback />}>
+  <Routes>
+    <Route path="/pet/:id" element={<PetDetailsPage />} />
+  </Routes>
+</Suspense>
+```
+- ✅ Reduz tamanho do bundle inicial
+- ✅ Carrega módulos sob demanda
+- ✅ Melhor performance
+
+#### **2. Type Safety Completo**
+```typescript
+// Sem any, sem coerção de tipos
+// TypeScript captura erros antes da execução
+const pet: Pet = await petService.getPetById(token, id);
+```
+
+#### **3. Composição de Componentes**
+```typescript
+// Componentes pequenos, focados, reutilizáveis
+<Card pet={pet} onEdit={handleEdit} onDelete={handleDelete} />
+<SearchBar searchTerm={term} onSearchChange={setTerm} />
+<Text variant="heading" className="custom">Título</Text>
+```
+
+#### **4. State Management com Hooks**
+```typescript
+// useState para estado local
+const [pets, setPets] = useState<Pet[]>([]);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
+// useEffect para efeitos colaterais
+useEffect(() => {
+    fetchPets();
+}, [token, currentPage, searchTerm]);
+```
+
+#### **5. Separação de Responsabilidades**
+```
+Components → Renderização e interação visual
+Pages      → Lógica de página e fluxo
+Services   → Comunicação com API
+Hooks      → Lógica reutilizável
+Types      → Contrato de dados
+```
+
+### 🔐 Autenticação e Autorização
+
+```typescript
+// Auto-login via set-login.tsx
+POST /autenticacao/login → Recebe access_token
+Token armazenado na memória (useState)
+Passado em todas requisições via header Authorization
+```
+
+### 🔗 Roteamento
+
+```typescript
+// React Router v7.13.0 - Roteamento declarativo
+
+GET  /                    → HomePage (listagem)
+GET  /pet/:id             → PetDetailsPage (detalhes)
+GET  /pet/form/new        → PetFormPage (criar)
+PUT  /pet/form/:id        → PetFormPage (editar)
+GET  /tutor/:id           → TutorDetailsPage (detalhes)
+GET  /tutor/form/new      → TutorFormPage (criar)
+PUT  /tutor/form/:id      → TutorFormPage (editar)
+```
+
+### 💅 Styling com Tailwind CSS 4.1.18
+
+```typescript
+// Tailwind CSS + CSS Custom Variables
+// Tema customizado com cores e gradientes
+
+<Text variant="heading" className="text-blue-500">
+<Card className="bg-gray-800 rounded-lg shadow-lg">
+<Button className="bg-green-500 hover:bg-green-600">
+```
+
+**Tema Customizado:**
+- Fonte: Rubik
+- Cores primárias: Blue, Green
+- Dark mode
+
+### ✅ Testes Unitários
+
+```typescript
+// Vitest + Testing Library
+npm test                    // Todos os testes
+npm test -- --watch        // Modo watch
+npm test:ui                // Interface gráfica
+npm test:coverage          // Cobertura
+
+// Testes inclusos:
+✓ useInputMasks.test.ts    (10 testes)
+✓ api.test.ts              (8 testes)
+✓ text.test.tsx            (8 testes)
+✓ search-bar.test.tsx      (6 testes)
+✓ card-background.test.tsx (3 testes)
+```
+
+### 📈 Performance
+
+- ✅ Lazy loading de rotas
+- ✅ Code splitting automático
+- ✅ Tailwind CSS purged
+- ✅ React Compiler ativo (babel-plugin-react-compiler)
+- ✅ Build otimizado com Vite
+
+### 🎯 Stack Tecnológico React
+
+| Tecnologia | Versão | Uso |
+|-----------|--------|-----|
+| React | 19.2.0 | Framework principal |
+| React Router | 7.13.0 | Roteamento SPA |
+| TypeScript | 5.9.3 | Type safety |
+| Vite | 7.2.4 | Build tool |
+| Tailwind CSS | 4.1.18 | Styling |
+| Axios | 1.13.4 | HTTP client |
+| Vitest | 4.0.18 | Testes unitários |
+| Testing Library | 16.3.2 | Testes de componentes |
+
+---
 
 ## Docker
 ### 📁 Arquivos
@@ -111,7 +422,7 @@ Docker HEALTHCHECK
    └─ Timeout/Error? → Exit 1 (unhealthy) ✗
 ```
 
-# Testes Unitários
+# Como testar? - Testes Unitários
 
 Este projeto contém testes unitários implementados com **Vitest** e **Testing Library**.
 
