@@ -25,17 +25,6 @@
 ## Sobre a aplicação
 A aplicação é uma Single Page Application (SPA) desenvolvida com **React 19.2.0** e **TypeScript 5.9.3**, implementando uma arquitetura modular baseada em componentes com separação de responsabilidades. Também utiliza bibliotecas como Axios para fazer chamadas a API, React Router para simular navegação de páginas dentro do SPA e Tailwind para auxiliar no estilo da aplicação.
 
-A arquitetura implementa dois padrões principais:
-- **Padrão Facade**: Simplifica a interação entre componentes e serviços
-- **Gerenciamento de Estado com RxJS**: Usa BehaviorSubject para estado reativo centralizado
-
-### 🔐 Sistema de Autenticação
-A aplicação implementa um sistema robusto de autenticação com refresh automático de tokens:
-- **Login**: Credenciais (username/password) → access_token + refresh_token
-- **Requisições**: Todas as requisições usam o access_token no header Authorization
-- **Refresh Automático**: Se uma requisição retorna 401, o refresh_token é usado para obter novos tokens
-- **Logout Automático**: Se o refresh falha, o usuário é redirecionado para o login
-
 
 # Como executar?
 A aplicação foi empacotada em um container Docker que pode ser executada da seguinte forma:
@@ -92,6 +81,17 @@ docker-compose down
 ### 🏗️ Visão Geral da Arquitetura
 
 A aplicação é uma Single Page Application (SPA) desenvolvida com **React 19.2.0** e **TypeScript 5.9.3**, implementando uma arquitetura modular baseada em componentes com separação clara de responsabilidades. Também utiliza bibliotecas como Axios para fazer as chamadas a API, React Router para simular navegação de páginas dentro do SPA e Tailwind para auxiliar no estilo da aplicação.
+
+A arquitetura implementa dois padrões principais:
+- **Padrão Facade**: Simplifica a interação entre componentes e serviços
+- **Gerenciamento de Estado com RxJS**: Usa BehaviorSubject para estado reativo centralizado
+
+### 🔐 Sistema de Autenticação
+A aplicação implementa um sistema robusto de autenticação com refresh automático de tokens:
+- **Login**: Credenciais (username/password) → access_token + refresh_token
+- **Requisições**: Todas as requisições usam o access_token no header Authorization
+- **Refresh Automático**: Se uma requisição retorna 401, o refresh_token é usado para obter novos tokens
+- **Logout Automático**: Se o refresh falha, o usuário é redirecionado para o login
 
 ### 📁 Estrutura de Pastas
 
