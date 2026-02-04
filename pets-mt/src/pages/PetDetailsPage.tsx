@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePetDetails } from "../hooks/usePetDetails";
-import { tutorService } from "../services/api";
+import { tutorService, petService } from "../services/api";
 import SetLogin from "../loaders/set-login";
 import CardBackground from "../components/card-background";
 import Text from "../components/text";
@@ -16,6 +16,9 @@ export default function PetDetailsPage() {
     const [tutorIdToLink, setTutorIdToLink] = useState<string>("");
     const [linkingTutor, setLinkingTutor] = useState(false);
     const [linkError, setLinkError] = useState<string | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     if (!Token) {
         return (
@@ -63,6 +66,22 @@ export default function PetDetailsPage() {
         }
     };
 
+    const handleDeletePet = async () => {
+        if (!Token || !petId) return;
+        setDeleting(true);
+        setDeleteError(null);
+        try {
+            await petService.deletePet(Token, petId);
+            // Navegar de volta para home após deletar
+            navigate("/");
+        } catch (err) {
+            setDeleteError(err instanceof Error ? err.message : "Erro ao deletar pet");
+        } finally {
+            setDeleting(false);
+            setShowDeleteConfirm(false);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-8 p-6 max-w-2xl mx-auto">
             <div className="flex justify-between items-center">
@@ -72,12 +91,20 @@ export default function PetDetailsPage() {
                 >
                     ← Voltar
                 </button>
-                <button
-                    onClick={() => navigate(`/pet/form/${petId}`)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg"
-                >
-                    ✎ Editar
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => navigate(`/pet/form/${petId}`)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg"
+                    >
+                        ✎ Editar
+                    </button>
+                    <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg"
+                    >
+                        🗑️ Deletar
+                    </button>
+                </div>
             </div>
 
             <CardBackground className="flex flex-col gap-6 p-8">
@@ -202,6 +229,51 @@ export default function PetDetailsPage() {
                     )}
                 </div>
             </CardBackground>
+
+            {/* Modal de Confirmação de Deleção */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <CardBackground className="p-8 max-w-md w-full mx-4">
+                        <Text
+                            as="h2"
+                            variant="heading"
+                            className="text-2xl mb-4 text-red-400"
+                        >
+                            Confirmar Deleção
+                        </Text>
+
+                        <Text variant="default" className="mb-6 text-gray-300">
+                            Tem certeza que deseja deletar o pet <strong>{pet?.nome}</strong>? Esta ação não pode ser desfeita.
+                        </Text>
+
+                        {deleteError && (
+                            <div className="bg-red-500 text-white p-3 rounded-lg mb-4">
+                                {deleteError}
+                            </div>
+                        )}
+
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleDeletePet}
+                                disabled={deleting}
+                                className="flex-1 bg-red-500 hover:bg-red-600 disabled:bg-gray-600 text-white font-bold py-2 rounded-lg"
+                            >
+                                {deleting ? "Deletando..." : "Deletar"}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowDeleteConfirm(false);
+                                    setDeleteError(null);
+                                }}
+                                disabled={deleting}
+                                className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-700 text-white font-bold py-2 rounded-lg"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </CardBackground>
+                </div>
+            )}
 
             {/* Modal de Vinculação */}
             {showLinkModal && (

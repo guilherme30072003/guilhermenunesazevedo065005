@@ -140,7 +140,7 @@ src/
 | Página | Funcionalidade |
 |--------|----------------|
 | `HomePage` | Listagem paginada de pets com busca |
-| `PetDetailsPage` | Detalhes completos do pet com tutores vinculados |
+| `PetDetailsPage` | Detalhes completos do pet com tutores vinculados e opção de deletar |
 | `PetFormPage` | Criar/editar pet com upload de foto |
 | `TutorDetailsPage` | Detalhes do tutor com pets vinculados |
 | `TutorFormPage` | Criar/editar tutor com upload de foto |
@@ -179,6 +179,7 @@ petService.getPetById(token, id)
 petService.createPet(token, petData)
 petService.updatePet(token, id, petData)
 petService.uploadPetPhoto(token, petId, file)
+petService.deletePet(token, id)
 
 // Tutor Service
 tutorService.getTutorById(token, id)
@@ -468,10 +469,11 @@ Testa as funções de máscara de entrada:
   - Formato: 123.456.789-01
   - Remove caracteres não-numéricos
 
-### 2. **api.test.ts**
+### 4. **api.test.ts**
 Testa as funções de serviço de API:
 - `petService.getPets()` - Listar pets com paginação e busca
 - `petService.getPetById()` - Buscar um pet por ID
+- `petService.deletePet()` - Deletar um pet por ID
 - `tutorService.getTutorById()` - Buscar um tutor por ID
 - `tutorService.getPetsByTutorId()` - Listar pets de um tutor
 - `tutorService.linkPetToTutor()` - Vincular pet a tutor

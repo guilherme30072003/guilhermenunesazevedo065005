@@ -80,6 +80,17 @@ export const petService = {
             console.error(`Erro ao fazer upload da foto do pet ${petId}:`, error);
             throw error;
         }
+    },
+
+    deletePet: async (token: string, id: number) => {
+        const authAxios = createAuthAxios(token);
+        try {
+            const response = await authAxios.delete(`/v1/pets/${id}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Erro ao deletar pet ${id}:`, error);
+            throw error;
+        }
     }
 };
 

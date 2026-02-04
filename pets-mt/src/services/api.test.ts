@@ -61,6 +61,28 @@ describe('API Services', () => {
         });
     });
 
+    describe('petService.deletePet', () => {
+        it('should delete a pet successfully', async () => {
+            const mockResponse = { success: true };
+
+            mockAxios.create.mockReturnValue({
+                delete: vi.fn().mockResolvedValue({ data: mockResponse })
+            });
+
+            const result = await petService.deletePet(mockToken, 1);
+            expect(result.success).toBe(true);
+        });
+
+        it('should handle error when deleting pet', async () => {
+            const error = new Error('Delete Error');
+            mockAxios.create.mockReturnValue({
+                delete: vi.fn().mockRejectedValue(error)
+            });
+
+            await expect(petService.deletePet(mockToken, 1)).rejects.toThrow('Delete Error');
+        });
+    });
+
     describe('tutorService.getTutorById', () => {
         it('should fetch a tutor by ID', async () => {
             const mockTutor = {
