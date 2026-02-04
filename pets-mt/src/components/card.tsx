@@ -17,8 +17,9 @@ interface CardProps {
 export default function Card({ id, nome, raca, idade, foto }: CardProps) {
     return (
         <CardBackground className={`
-          flex flex-col gap-6.5 w-89
-          pt-14 px-8 pb-8 cursor-pointer
+          flex flex-col gap-4 w-full h-96
+          pt-4 px-6 pb-6 cursor-pointer
+          overflow-hidden
           `}>
             <CardData id={id} nome={nome} raca={raca} idade={idade} foto={foto} />
         </CardBackground>

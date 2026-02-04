@@ -75,68 +75,69 @@ function AppContent() {
 
   return (
     <Router>
-      <main className={`
-                py-16 px-4 sm:px-10
-                flex-1 sm:flex-row
-                items-center sm:items-stretch
-                gap-2,
-                `}>
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <Text variant="blast" className="text-blue-500 flex items-center justify-center"> 🐶 Pets MT </Text>
-            <Text variant="default" className="text-(--text-secondary) flex items-center justify-center"> clique no card para ver os detalhes do pet </Text>
+      <div className="min-h-screen flex flex-col bg-gray-900">
+        {/* Header - Centralizado */}
+        <div className="w-full bg-gray-800 shadow-lg">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-10 py-6 gap-4">
+            <div className="text-center flex-1 sm:text-left">
+              <Text variant="blast" className="text-blue-500 text-3xl sm:text-4xl"> 🐶 Pets MT </Text>
+              <Text variant="default" className="text-gray-400 text-sm mt-1"> clique no card para ver os detalhes do pet </Text>
+            </div>
+            <button
+              onClick={logout}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+            >
+              Sair
+            </button>
           </div>
-          <button
-            onClick={logout}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"
-          >
-            Sair
-          </button>
         </div>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/" element={
-              <ProtectedRoute>
-                <HomePage />
-              </ProtectedRoute>
-            } />
-            {/* Rotas Pets */}
-            <Route path="/pet/:id" element={
-              <ProtectedRoute>
-                <PetDetailsPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/pet/form/new" element={
-              <ProtectedRoute>
-                <PetFormPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/pet/form/:id" element={
-              <ProtectedRoute>
-                <PetFormPage />
-              </ProtectedRoute>
-            } />
-            {/* Rotas Tutores */}
-            <Route path="/tutor/:id" element={
-              <ProtectedRoute>
-                <TutorDetailsPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/tutor/form/new" element={
-              <ProtectedRoute>
-                <TutorFormPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/tutor/form/:id" element={
-              <ProtectedRoute>
-                <TutorFormPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </main>
+        {/* Main Content */}
+        <main className="flex-1 w-full px-4 sm:px-10 py-8">
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <HomePage />
+                </ProtectedRoute>
+              } />
+              {/* Rotas Pets */}
+              <Route path="/pet/:id" element={
+                <ProtectedRoute>
+                  <PetDetailsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/pet/form/new" element={
+                <ProtectedRoute>
+                  <PetFormPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/pet/form/:id" element={
+                <ProtectedRoute>
+                  <PetFormPage />
+                </ProtectedRoute>
+              } />
+              {/* Rotas Tutores */}
+              <Route path="/tutor/:id" element={
+                <ProtectedRoute>
+                  <TutorDetailsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/tutor/form/new" element={
+                <ProtectedRoute>
+                  <TutorFormPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/tutor/form/:id" element={
+                <ProtectedRoute>
+                  <TutorFormPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </main>
+      </div>
     </Router>
   );
 }

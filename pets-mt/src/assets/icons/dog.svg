@@ -1,0 +1,31 @@
+<svg
+  width="128"
+  height="128"
+  viewBox="0 0 128 128"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- Cabeça -->
+  <circle cx="64" cy="64" r="40" fill="#D8A15D" />
+
+  <!-- Orelhas -->
+  <ellipse cx="28" cy="48" rx="16" ry="24" fill="#B57B3A" />
+  <ellipse cx="100" cy="48" rx="16" ry="24" fill="#B57B3A" />
+
+  <!-- Olhos -->
+  <circle cx="50" cy="60" r="4" fill="#000" />
+  <circle cx="78" cy="60" r="4" fill="#000" />
+
+  <!-- Focinho -->
+  <ellipse cx="64" cy="78" rx="18" ry="14" fill="#F2D6B3" />
+
+  <!-- Nariz -->
+  <circle cx="64" cy="74" r="4" fill="#000" />
+
+  <!-- Boca -->
+  <path
+    d="M58 82 Q64 88 70 82"
+    stroke="#000"
+    stroke-width="2"
+    fill="none"
+  />
+</svg>
